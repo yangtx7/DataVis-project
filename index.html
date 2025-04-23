@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extreme Events Explorer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Extreme Events Interactive Explorer</h1>
+
+    <div class="container">
+        <div class="controls">
+            <h2>Filters</h2>
+
+            <!-- Reverted Year Slider Group -->
+            <div class="filter-group year-filter">
+                <label for="year-slider">Year:</label>
+                <!-- Removed slider-container div -->
+                <input type="range" id="year-slider" min="1900" max="2023" value="2023">
+                <span id="year-value">All</span> <!-- Default to All -->
+                <button id="reset-year">Show All Years</button>
+            </div>
+
+            <!-- Hierarchical Event Filters (Keep as is) -->
+            <div class="filter-group">
+                <label for="group-select">Disaster Group:</label>
+                <select id="group-select">
+                    <option value="all">All Groups</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="type-select">Disaster Type:</label>
+                <select id="type-select">
+                    <option value="all">All Types</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="subtype-select">Disaster Subtype:</label>
+                <select id="subtype-select">
+                    <option value="all">All Subtypes</option>
+                </select>
+            </div>
+            <!-- End Hierarchical Filters -->
+
+            <div class="filter-group">
+                 <p>Click on a country on the map to see details.</p>
+                 <button id="reset-zoom">Reset Zoom/Pan</button>
+            </div>
+
+             <div id="legend">
+                <h3>Event Count</h3>
+             </div>
+        </div>
+
+        <div class="map-container">
+            <!-- Add a group to contain map content for zooming/panning -->
+            <svg id="map">
+                <g id="map-content"></g>
+            </svg>
+             <div class="tooltip" id="tooltip"></div>
+        </div>
+
+        <div class="info-panel" id="info-panel">
+            <h2>Information</h2>
+            <div id="country-info">
+                <!-- Default text -->
+                <p>Select a country on the map to view its extreme events based on the current filters.</p>
+            </div>
+            <div id="event-details">
+                 <!-- Default text -->
+                 <p>Click an event in the list above for details.</p>
+                 <div id="details-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
