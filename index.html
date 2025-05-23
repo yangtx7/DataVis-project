@@ -1,21 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Extreme Events Explorer</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>极端气候灾害数据可视化</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- 自带字体，可根据需要替换 -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root{
+      --primary:#4f46e5; /* indigo-600 */
+      --bg:#f9fafb;     /* gray-50 */
+      --text:#1f2937;   /* gray-800 */
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{
+      font-family:'Inter',system-ui,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.6;
+    }
+    /* 顶部区域 */
+    header{
+      background:#fff;
+      box-shadow:0 2px 4px rgba(0,0,0,.05);
+      position:sticky;
+      top:0;
+      z-index:999;
+    }
+    nav.tabs{
+      display:flex;
+      max-width:800px;
+      margin:0 auto;
+      position:relative;
+    }
+    nav.tabs button{
+      flex:1;
+      padding:1rem 0;
+      font-size:1rem;
+      border:none;
+      background:transparent;
+      cursor:pointer;
+      transition:color .3s;
+    }
+    nav.tabs button:hover{color:var(--primary);}  /* hover 效果 */
+    nav.tabs button.active{color:var(--primary);} /* 选中状态 */
+
+    /* 底部滑块 */
+    .glider{
+      position:absolute;
+      bottom:0;
+      left:0;
+      width:calc(100% / 3); /* 一共 3 个 tab */
+      height:3px;
+      background:var(--primary);
+      transition:transform .3s ease;
+      transform:translateX(0);
+    }
+
+    /* 主要内容区 */
+    main{
+      /* max-width:800px; */
+      margin:0 auto;
+      padding:2rem 1rem;
+    }
+    section{
+      display:none;
+      animation:fade .3s ease;
+    }
+    section.active{display:block;}
+
+    @keyframes fade{
+      from{opacity:0;transform:translateY(10px);} /* 轻微上移淡入 */
+      to{opacity:1;transform:translateY(0);}      /* 最终位置 */
+    }
+
+    /* GIF 样式 */
+    .hero-gif {
+      /* width: 100%; */
+      max-width: 60%;
+      border-radius: 0.75rem;
+      margin: -1rem;
+      margin-left: 20%;
+      margin-right: 20%;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    }
+    .container {
+      display: flex;
+      margin: -1rem;
+      flex-wrap: wrap;
+      padding: 10px;
+      gap: 15px; /* Add space between flex items */
+    }
+    .controls {
+      flex: 1; /* Takes up 1 part of the space */
+      min-width: 250px; /* Minimum width */
+      max-width: 300px; /* Maximum width */
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      margin: -0.75rem 0;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+      height: fit-content; /* Adjust height to content */
+    }
+
+  </style>
 </head>
 <body>
-    <h1>Extreme Events Interactive Explorer</h1>
 
-    <div class="container">
+  <header>
+    <nav class="tabs">
+      <button class="tab active" data-target="sec1">全球趋势概览</button>
+      <button class="tab" data-target="sec2">区域聚焦与国家详情</button>
+      <button class="tab" data-target="sec3">交互式探索</button>
+      <span class="glider"></span>
+    </nav>
+  </header>
+
+  <main>
+    <section id="sec1" class="content active">
+      <figure>
+        <!-- 将 src 改为你的 GIF 文件路径，如 global-trends.gif 或 assets/global-trends.gif -->
+        <img src="assets/2.gif" alt="全球趋势动画" class="hero-gif" />
+      </figure>
+    </section>
+
+    <section id="sec2" class="content">
+      <div class="container">
         <div class="controls">
-            <h2>Filters</h2>
+            <h2>属性选择</h2>
 
             <!-- Reverted Year Slider Group -->
             <div class="filter-group year-filter">
-                <label for="year-slider">Year:</label>
+                <label for="year-slider">年份：</label>
                 <!-- Removed slider-container div -->
                 <input type="range" id="year-slider" min="1900" max="2023" value="2023">
                 <span id="year-value">All</span> <!-- Default to All -->
@@ -73,9 +190,39 @@
                  <div id="details-content"></div>
             </div>
         </div>
-    </div>
+      </div>
+    </section>
 
-    <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script src="script.js"></script>
+    <section id="sec3" class="content">
+      <h2>交互式探索</h2>
+      <p>这里是第三部分内容。放置邮箱、电话、社交媒体链接等。</p>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded',()=>{
+      const tabs=document.querySelectorAll('.tab');
+      const sections=document.querySelectorAll('section.content');
+      const glider=document.querySelector('.glider');
+
+      tabs.forEach((tab,idx)=>{
+        tab.addEventListener('click',()=>{
+          // 激活 tab
+          tabs.forEach(t=>t.classList.remove('active'));
+          tab.classList.add('active');
+
+          // 显示对应内容
+          sections.forEach(sec=>sec.classList.remove('active'));
+          document.getElementById(tab.dataset.target).classList.add('active');
+
+          // 滑块动画
+          glider.style.transform=`translateX(${idx*100}%)`;
+        });
+      });
+    });
+  </script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="script.js"></script>
+
 </body>
 </html>

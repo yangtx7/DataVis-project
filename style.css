@@ -16,23 +16,7 @@ h4 {
 }
 
 
-.container {
-    display: flex;
-    flex-wrap: wrap;
-    padding: 10px;
-    gap: 15px; /* Add space between flex items */
-}
 
-.controls {
-    flex: 1; /* Takes up 1 part of the space */
-    min-width: 250px; /* Minimum width */
-    max-width: 300px; /* Maximum width */
-    background: #fff;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    height: fit-content; /* Adjust height to content */
-}
 
 .filter-group {
     margin-bottom: 20px;

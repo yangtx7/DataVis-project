@@ -428,15 +428,38 @@ function populateEventTypeFilter(data) {
 
 // --- Map Drawing ---
 function drawMap() {
-    if (!geojsonData) { /* ... handle error ... */ return; }
-    // console.log("Redrawing map...");
+    if (!geojsonData || !geojsonData.features) {
+        console.error("GeoJSON data is missing or invalid!");
+        return;
+    }
+    console.log("Sample GeoJSON feature:", geojsonData.features[0]); // 查看第一个feature的结构
+
+    geojsonData.features.forEach((feature, index) => {
+        if (!feature.geometry) {
+            console.error(`Feature at index ${index} has no geometry:`, feature);
+        } else if (!feature.geometry.coordinates || feature.geometry.coordinates.length === 0) {
+            console.error(`Feature at index ${index} has invalid coordinates:`, feature);
+        }
+        // 更细致的坐标检查可以深入到 coordinates 数组内部
+    });
 
     svg.selectAll("path.country")
         .data(geojsonData.features, d => d.id) // Use top-level ID as key
         .join(
             enter => enter.append("path")
                 .attr("class", "country")
-                .attr("d", pathGenerator)
+                // .attr("d", pathGenerator)
+                .attr("d", d => { // 修改这里进行调试
+                    const pathString = pathGenerator(d);
+                    if (typeof pathString === 'string' && pathString.includes("NaN")) {
+                        console.error("NaN detected in path string for feature:", d);
+                        console.log("Problematic path string:", pathString);
+                        // 如果 pathGenerator 依赖一个 projection，可以打印 projection 的状态
+                        // console.log("Current projection:", projection);
+                        // console.log("Projection of a sample coordinate:", projection(d.geometry.coordinates[0][0][0])); // 取决于geometry类型
+                    }
+                    return pathString;
+                })
                 .attr("fill", d => getCountryColor(d.id)) // Use d.id
                 .on("click", handleCountryClick)
                 .on("mouseover", handleMouseOver)
