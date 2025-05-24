@@ -4,110 +4,460 @@
   <meta charset="UTF-8" />
   <title>极端气候灾害数据可视化</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- 自带字体，可根据需要替换 -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
-    :root{
-      --primary:#4f46e5; /* indigo-600 */
-      --bg:#f9fafb;     /* gray-50 */
-      --text:#1f2937;   /* gray-800 */
-    }
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{
-      font-family:'Inter',system-ui,sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      line-height:1.6;
-    }
-    /* 顶部区域 */
-    header{
-      background:#fff;
-      box-shadow:0 2px 4px rgba(0,0,0,.05);
-      position:sticky;
-      top:0;
-      z-index:999;
-    }
-    nav.tabs{
-      display:flex;
-      max-width:800px;
-      margin:0 auto;
-      position:relative;
-    }
-    nav.tabs button{
-      flex:1;
-      padding:1rem 0;
-      font-size:1rem;
-      border:none;
-      background:transparent;
-      cursor:pointer;
-      transition:color .3s;
-    }
-    nav.tabs button:hover{color:var(--primary);}  /* hover 效果 */
-    nav.tabs button.active{color:var(--primary);} /* 选中状态 */
-
-    /* 底部滑块 */
-    .glider{
-      position:absolute;
-      bottom:0;
-      left:0;
-      width:calc(100% / 3); /* 一共 3 个 tab */
-      height:3px;
-      background:var(--primary);
-      transition:transform .3s ease;
-      transform:translateX(0);
+    :root {
+      --primary: #4f46e5; /* indigo-600 */
+      --bg: #f9fafb; /* gray-50 */
+      --text: #1f2937; /* gray-800 */
+      --border-color: #e5e7eb; /* gray-200 */
+      --card-bg: #ffffff;
     }
 
-    /* 主要内容区 */
-    main{
-      /* max-width:800px; */
-      margin:0 auto;
-      padding:2rem 1rem;
-    }
-    section{
-      display:none;
-      animation:fade .3s ease;
-    }
-    section.active{display:block;}
-
-    @keyframes fade{
-      from{opacity:0;transform:translateY(10px);} /* 轻微上移淡入 */
-      to{opacity:1;transform:translateY(0);}      /* 最终位置 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
-    /* GIF 样式 */
-    .hero-gif {
-      /* width: 100%; */
-      max-width: 60%;
-      border-radius: 0.75rem;
-      margin: -1rem;
-      margin-left: 20%;
-      margin-right: 20%;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 16px; /* Base font size */
     }
-    .container {
+
+    /* ───────────── 顶部导航 Tabs ───────────── */
+    header {
+      background: var(--card-bg);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 1000; /* Ensure header is above other content */
+    }
+
+    nav.tabs {
       display: flex;
-      margin: -1rem;
-      flex-wrap: wrap;
-      padding: 10px;
-      gap: 15px; /* Add space between flex items */
+      max-width: 900px; /* Increased max-width for wider tabs */
+      margin: 0 auto;
+      position: relative;
     }
-    .controls {
-      flex: 1; /* Takes up 1 part of the space */
-      min-width: 250px; /* Minimum width */
-      max-width: 300px; /* Maximum width */
-      background: #fff;
-      padding: 15px;
-      border-radius: 8px;
-      margin: -0.75rem 0;
+
+    nav.tabs button {
+      flex: 1;
+      padding: 1rem 0.5rem; /* Adjusted padding */
+      font-size: 0.95rem; /* Slightly smaller font for more text */
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: color 0.3s;
+      color: #6b7280; /* gray-500 */
+    }
+
+    nav.tabs button:hover {
+      color: var(--primary);
+    }
+
+    nav.tabs button.active {
+      color: var(--primary);
+    }
+
+    .glider {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: calc(100% / 3); /* 3 个 tab */
+      height: 3px;
+      background: var(--primary);
+      transition: transform 0.3s ease;
+      transform: translateX(0);
+    }
+
+    /* ───────────── 主体内容 ───────────── */
+    main {
+      padding: 1.5rem; /* Adjusted main padding for consistency */
+      max-width: 1400px; /* Max width for the main content area */
+      margin: 0 auto; /* Center main content */
+    }
+
+    section {
+      display: none;
+    }
+    
+    section.active {
+      display: block;
+      animation: fade 0.5s ease-in-out;
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ───────────── 首屏 GIF ───────────── */
+    .hero-gif {
+      max-width: 100%; /* Make GIF responsive */
+      height: auto;
+      max-height: 520px; /* Limit height */
+      object-fit: contain;
+      border-radius: 0.75rem;
+      margin: 0 auto 1rem auto; /* Center and add bottom margin */
+      display: block;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-      height: fit-content; /* Adjust height to content */
+    }
+    
+    h2, h3 {
+        font-weight: 600;
+        color: var(--text);
+    }
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem; /* Slightly reduced bottom margin for h3 */
+    }
+
+
+    /* ───────────── Tab 2 Layout ───────────── */
+    .tab2-container {
+      display: flex;
+      flex-direction: column; /* Stack vertically on small screens */
+      gap: 1.5rem;
+    }
+
+    .controls-panel { /* Shared by Tab 2 */
+      padding: 1.5rem; 
+      background: var(--card-bg); 
+      border-radius: 0.75rem; 
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    
+    .map-and-info-container {
+        display: flex;
+        flex-direction: column; /* Stack on small screens */
+        gap: 1.5rem;
+    }
+
+    .map-container-wrapper {
+      flex: 1; 
+      min-width: 0; 
+      background: var(--card-bg);
+      border-radius: 0.75rem; 
+      padding: 1rem; 
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+
+    #map {
+      width: 100%;
+      height: auto; 
+      max-height: 500px; 
+    }
+
+    .info-panel {
+      padding: 1.5rem; 
+      background: var(--card-bg);
+      border-radius: 0.75rem; 
+      height: 400px; 
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    
+    @media (min-width: 1024px) { 
+        .tab2-container {
+            flex-direction: row; 
+            margin-top: -10px;
+        }
+        .controls-panel { /* Tab 2 specific width */
+            flex: 0 0 240px; /* Slightly wider fixed width for controls */
+            height: auto;
+        }
+        .map-and-info-container {
+            flex: 1;
+            flex-direction: row;
+        }
+        .map-container-wrapper {
+            flex: 2.5; 
+        }
+        .info-panel {
+            flex: 1; 
+            height: auto; 
+            max-height: 585px; 
+        }
+    }
+
+    /* Control Panel Elements (Shared Styles) */
+    .control-group {
+      margin-bottom: 1.25rem; 
+    }
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-group label,
+    label[for="allYearsCheckbox"],
+    label[for="tab3AllYearsCheckbox"] { /* Added Tab 3 checkbox label */
+      display: block;
+      margin-bottom: 0.1rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #374151; /* gray-700 */
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    #selectedYearDisplay, #tab3SelectedYearDisplay { /* Added Tab 3 year display */
+      font-weight: bold;
+      color: var(--primary);
+      font-size: 1rem;
+      margin-left: 0.25rem;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      margin-top: 0.5rem; 
+    }
+
+    input[type="checkbox"] {
+      margin-right: 0.5rem;
+      width: 1.15rem;
+      height: 1.15rem;
+      accent-color: var(--primary);
+      cursor: pointer;
+      border-radius: 0.25rem;
+      border: 1px solid var(--border-color);
+    }
+
+    select.filter-select, 
+    .tab3-controls-panel select, /* Tab 3 selects */
+    .tab3-controls-panel input[type="number"] /* Tab 3 number inputs */
+     {
+      width: 100%;
+      padding: 0.6rem 0.75rem; 
+      border: 1px solid var(--border-color);
+      border-radius: 0.375rem; 
+      background-color: var(--card-bg);
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    select.filter-select:focus,
+    .tab3-controls-panel select:focus, /* Tab 3 selects focus */
+    .tab3-controls-panel input[type="number"]:focus /* Tab 3 number inputs focus */
+    {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); 
+    }
+    
+    /* Info Panel Table (Tab 2) */
+    .info-panel table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem; 
+    }
+
+    .info-panel th, .info-panel td {
+      border: 1px solid var(--border-color);
+      padding: 0.6rem 0.4rem; 
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .info-panel th {
+      background-color: #f3f4f6; 
+      font-weight: 600;
+      position: sticky; 
+      top: -1.5rem; 
+      z-index: 10;
+      box-shadow: inset 0 -1px 0 var(--border-color); 
+    }
+    
+    /* SVG Map Styles (Tab 2) */
+    svg#map-svg { 
+      display: block; 
+      font-family: inherit;
+    }
+
+    .country {
+      fill: #e0e7ff; 
+      stroke: #a5b4fc; 
+      stroke-width: 0.5;
+      transition: fill 0.2s ease;
+    }
+
+    .country:hover {
+      fill: #6366f1; 
+      cursor: pointer;
+    }
+
+    /* Tooltip (Tab 2) */
+    .tooltip {
+      position: absolute;
+      background: rgba(31, 41, 55, 0.95); 
+      color: #f9fafb; 
+      border: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem; 
+      font-size: 0.8rem;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      pointer-events: none; 
+      opacity: 0;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      transform: translate(-50%, calc(-100% - 10px)); 
+      white-space: nowrap;
+      z-index: 1001; 
+    }
+
+    /* ───────────── Tab 3 Layout & Styles ───────────── */
+    .tab3-layout {
+        display: flex;
+        flex-direction: column; /* Default for small screens */
+        gap: 1.5rem;
+    }
+
+    .tab3-controls-panel {
+        padding: 1.5rem;
+        background: var(--card-bg);
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    
+    .tab3-charts-panel {
+        flex-grow: 1;
+        display: grid;
+        grid-template-columns: 1fr; /* Single column for small screens */
+        gap: 1.5rem;
+
+    }
+
+    .chart-container {
+        background: var(--card-bg);
+        padding: 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        min-height: 400px; /* Adjusted min-height for better chart display */
+        display: flex; 
+        flex-direction: column; /* Allow title and chart */
+        align-items: stretch; 
+        justify-content: flex-start;
+    }
+    
+    .chart-container h4 { /* Style for chart titles */
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .chart-container > div { /* The ECharts div */
+        width: 100%;
+        flex-grow: 1; /* Make ECharts div take remaining space */
+        height: 300px; /* Default height, ECharts will use it */
+    }
+    
+    .chart-placeholder { /* For messages like 'Loading...' or 'No data' */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        color: #6b7280; /* gray-500 */
+        font-style: italic;
+    }
+
+
+    @media (min-width: 768px) { /* md breakpoint for 2 charts per row */
+      .tab3-charts-panel {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (min-width: 1024px) { /* lg breakpoint for layout change */
+        .tab3-layout {
+            flex-direction: row;
+        }
+        .tab3-controls-panel {
+            flex: 0 0 230px; /* Wider fixed width for controls */
+        }
+        .tab3-charts-panel {
+           /* One column of charts when controls are on the side */
+           grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (min-width: 1280px) { /* xl breakpoint for 3 charts in a row if controls are on top, or adjust for side controls */
+        .tab3-layout.controls-top .tab3-charts-panel { /* Example if we had a class to toggle control position */
+             grid-template-columns: 1fr 1fr 1fr;
+        }
+        /* If controls are on the side, maybe 2 charts per row is enough, or a smart grid */
+        .tab3-layout:not(.controls-top) .tab3-charts-panel {
+             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        }
+    }
+
+
+    .tab3-controls-panel .year-range-inputs {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center; /* Align items vertically */
+    }
+    .tab3-controls-panel .year-range-inputs input[type="number"] {
+        flex: 1;
+    }
+    .tab3-controls-panel .year-range-inputs span { /* For the "to" text */
+        font-size: 0.9rem;
+        color: #374151;
+    }
+
+    .tab3-apply-filters-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 1.5rem; /* Increased margin */
+    }
+    .tab3-apply-filters-btn:hover {
+        background-color: #4338ca; /* indigo-700 */
+    }
+    .tab3-apply-filters-btn:disabled {
+        background-color: #9ca3af; /* gray-400 */
+        cursor: not-allowed;
     }
 
   </style>
 </head>
 <body>
-
   <header>
     <nav class="tabs">
       <button class="tab active" data-target="sec1">全球趋势概览</button>
@@ -120,109 +470,676 @@
   <main>
     <section id="sec1" class="content active">
       <figure>
-        <!-- 将 src 改为你的 GIF 文件路径，如 global-trends.gif 或 assets/global-trends.gif -->
-        <img src="assets/2.gif" alt="全球趋势动画" class="hero-gif" />
+        <img src="assets/2.gif" 
+             onerror="this.onerror=null; this.src='https://placehold.co/800x400/cccccc/333333?text=GIF+Not+Found';"
+             alt="全球趋势动画" class="hero-gif" />
       </figure>
     </section>
 
     <section id="sec2" class="content">
-      <div class="container">
-        <div class="controls">
-            <h2>属性选择</h2>
-
-            <!-- Reverted Year Slider Group -->
-            <div class="filter-group year-filter">
-                <label for="year-slider">年份：</label>
-                <!-- Removed slider-container div -->
-                <input type="range" id="year-slider" min="1900" max="2023" value="2023">
-                <span id="year-value">All</span> <!-- Default to All -->
-                <button id="reset-year">Show All Years</button>
+      <div class="tab2-container">
+        <aside class="controls-panel">
+          <h3>数据筛选与控制</h3>
+          <div class="control-group">
+            <label for="yearSlider">选择年份: <span id="selectedYearDisplay">加载中...</span></label>
+            <input type="range" id="yearSlider" name="yearSlider" min="1900" max="2025" disabled>
+          </div>
+          <div class="control-group checkbox-container">
+            <input type="checkbox" id="allYearsCheckbox" name="allYearsCheckbox" checked>
+            <label for="allYearsCheckbox">显示全部年份数据</label>
+          </div>
+          <hr style="margin: 1.5rem 0; border-color: var(--border-color);">
+           <div class="control-group">
+            <label for="disasterSubgroupSelect">灾害亚群:</label>
+            <select id="disasterSubgroupSelect" name="disasterSubgroupSelect" class="filter-select">
+              <option value="All">所有亚群</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="disasterTypeSelect">灾害类型:</label>
+            <select id="disasterTypeSelect" name="disasterTypeSelect" class="filter-select">
+              <option value="All">所有类型</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="disasterSubtypeSelect">灾害子类型:</label>
+            <select id="disasterSubtypeSelect" name="disasterSubtypeSelect" class="filter-select">
+              <option value="All">所有子类型</option>
+            </select>
+          </div>
+        </aside>
+        
+        <div class="map-and-info-container">
+            <div class="map-container-wrapper">
+              <div id="map">
+                </div>
             </div>
-
-            <!-- Hierarchical Event Filters (Keep as is) -->
-            <div class="filter-group">
-                <label for="group-select">Disaster Group:</label>
-                <select id="group-select">
-                    <option value="all">All Groups</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="type-select">Disaster Type:</label>
-                <select id="type-select">
-                    <option value="all">All Types</option>
-                </select>
-            </div>
-            <div class="filter-group">
-                <label for="subtype-select">Disaster Subtype:</label>
-                <select id="subtype-select">
-                    <option value="all">All Subtypes</option>
-                </select>
-            </div>
-            <!-- End Hierarchical Filters -->
-
-            <div class="filter-group">
-                 <p>Click on a country on the map to see details.</p>
-                 <button id="reset-zoom">Reset Zoom/Pan</button>
-            </div>
-
-             <div id="legend">
-                <h3>Event Count</h3>
-             </div>
-        </div>
-
-        <div class="map-container">
-            <!-- Add a group to contain map content for zooming/panning -->
-            <svg id="map">
-                <g id="map-content"></g>
-            </svg>
-             <div class="tooltip" id="tooltip"></div>
-        </div>
-
-        <div class="info-panel" id="info-panel">
-            <h2>Information</h2>
-            <div id="country-info">
-                <!-- Default text -->
-                <p>Select a country on the map to view its extreme events based on the current filters.</p>
-            </div>
-            <div id="event-details">
-                 <!-- Default text -->
-                 <p>Click an event in the list above for details.</p>
-                 <div id="details-content"></div>
-            </div>
+            <aside class="info-panel">
+              <h3>事件详情列表</h3>
+              <div id="infoTableContainer">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>灾害类型</th>
+                      <th>国家</th>
+                      <th>年份</th>
+                      <th>总死亡人数</th>
+                    </tr>
+                  </thead>
+                  <tbody id="infoTableBody">
+                    <tr><td colspan="4" style="text-align:center;">加载数据中或无匹配事件...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </aside>
         </div>
       </div>
+      <div id="tooltip" class="tooltip" style="opacity: 0;"></div>
     </section>
 
     <section id="sec3" class="content">
-      <h2>交互式探索</h2>
-      <p>这里是第三部分内容。放置邮箱、电话、社交媒体链接等。</p>
+      <div class="tab3-layout">
+        <aside class="tab3-controls-panel">
+          <h3>交互式数据探索</h3>
+          <div class="control-group">
+            <label for="tab3StartYear">时间范围:</label>
+            <div class="year-range-inputs">
+              <input type="number" id="tab3StartYear" name="tab3StartYear" placeholder="起始年份" disabled>
+              <span>至</span>
+              <input type="number" id="tab3EndYear" name="tab3EndYear" placeholder="结束年份" disabled>
+            </div>
+          </div>
+          
+          <div class="control-group">
+            <label for="tab3CountrySelect">国家/地区:</label>
+            <select id="tab3CountrySelect" name="tab3CountrySelect" class="filter-select" disabled>
+              <option value="All">所有国家/地区</option>
+            </select>
+          </div>
+          <hr style="margin: 1.5rem 0; border-color: var(--border-color);">
+          <div class="control-group">
+            <label for="tab3DisasterSubgroupSelect">灾害亚群:</label>
+            <select id="tab3DisasterSubgroupSelect" name="tab3DisasterSubgroupSelect" class="filter-select" disabled>
+              <option value="All">所有亚群</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="tab3DisasterTypeSelect">灾害类型:</label>
+            <select id="tab3DisasterTypeSelect" name="tab3DisasterTypeSelect" class="filter-select" disabled>
+              <option value="All">所有类型</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="tab3DisasterSubtypeSelect">灾害子类型:</label>
+            <select id="tab3DisasterSubtypeSelect" name="tab3DisasterSubtypeSelect" class="filter-select" disabled>
+              <option value="All">所有子类型</option>
+            </select>
+          </div>
+          <button id="tab3ApplyFiltersBtn" class="tab3-apply-filters-btn" disabled>应用筛选</button>
+        </aside>
+        
+        <div class="tab3-charts-panel">
+          <div class="chart-container">
+            <h4 id="annualLossTrendChartTitle">年度灾害损失趋势</h4>
+            <div id="annualLossTrendChart"><div class="chart-placeholder">请先加载数据并应用筛选</div></div>
+          </div>
+          <div class="chart-container">
+            <h4 id="countryLossPieChartTitle">各国灾害损失对比</h4>
+            <div id="countryLossPieChart"><div class="chart-placeholder">请先加载数据并应用筛选</div></div>
+          </div>
+          <div class="chart-container">
+            <h4 id="disasterImpactRadarChartTitle">不同灾害类型影响对比</h4>
+            <div id="disasterImpactRadarChart"><div class="chart-placeholder">请先加载数据并应用筛选</div></div>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 
   <script>
-    document.addEventListener('DOMContentLoaded',()=>{
-      const tabs=document.querySelectorAll('.tab');
-      const sections=document.querySelectorAll('section.content');
-      const glider=document.querySelector('.glider');
+    document.addEventListener('DOMContentLoaded', () => {
+      // Tab switching logic
+      const tabs = document.querySelectorAll('.tab');
+      const sections = document.querySelectorAll('section.content');
+      const glider = document.querySelector('.glider');
 
-      tabs.forEach((tab,idx)=>{
-        tab.addEventListener('click',()=>{
-          // 激活 tab
-          tabs.forEach(t=>t.classList.remove('active'));
+      tabs.forEach((tab, idx) => {
+        tab.addEventListener('click', () => {
+          tabs.forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
+          sections.forEach(sec => sec.classList.remove('active'));
+          const targetSectionId = tab.dataset.target;
+          const targetSection = document.getElementById(targetSectionId);
+          if (targetSection) {
+            targetSection.classList.add('active');
+          }
+          glider.style.transform = `translateX(${idx * 100}%)`;
 
-          // 显示对应内容
-          sections.forEach(sec=>sec.classList.remove('active'));
-          document.getElementById(tab.dataset.target).classList.add('active');
-
-          // 滑块动画
-          glider.style.transform=`translateX(${idx*100}%)`;
+          // Initialize Tab 3 if it's selected and not already initialized
+          if (targetSectionId === 'sec3' && !tab3Initialized && allDisasterEvents.length > 0) {
+            initializeTab3();
+          }
         });
+      });
+
+      // --- Global Data Variables ---
+      let allDisasterEvents = [];
+      let worldGeoJson = null; // For Tab 2 map
+
+      // --- Tab 2: Map and Data Visualization Logic (Existing) ---
+      const yearSlider = document.getElementById('yearSlider');
+      const selectedYearDisplay = document.getElementById('selectedYearDisplay');
+      const allYearsCheckbox = document.getElementById('allYearsCheckbox');
+      const disasterSubgroupSelect = document.getElementById('disasterSubgroupSelect');
+      const disasterTypeSelect = document.getElementById('disasterTypeSelect');
+      const disasterSubtypeSelect = document.getElementById('disasterSubtypeSelect');
+      
+      const mapContainer = d3.select('#map');
+      const tooltip = d3.select('#tooltip');
+      const infoTableBody = d3.select('#infoTableBody');
+
+      const mapBaseWidth = 900;
+      const mapBaseHeight = 520;
+
+      const svg = mapContainer.append('svg')
+        .attr('id', 'map-svg')
+        .attr('viewBox', `0 0 ${mapBaseWidth} ${mapBaseHeight}`)
+        .attr('preserveAspectRatio', 'xMidYMid meet');
+
+      const projection = d3.geoNaturalEarth1()
+        .scale(mapBaseWidth / 1.8 / Math.PI)
+        .translate([mapBaseWidth / 2, mapBaseHeight / 1.75]);
+
+      const pathGenerator = d3.geoPath().projection(projection);
+      let countryPathsSelection = null;
+      let currentCountryEventCounts = {};
+
+      // --- Tab 3: Interactive Exploration Logic ---
+      let tab3Initialized = false;
+      let annualLossTrendChartInstance, countryLossPieChartInstance, disasterImpactRadarChartInstance;
+
+      const tab3StartYearInput = document.getElementById('tab3StartYear');
+      const tab3EndYearInput = document.getElementById('tab3EndYear');
+      const tab3CountrySelect = document.getElementById('tab3CountrySelect');
+      const tab3DisasterSubgroupSelect = document.getElementById('tab3DisasterSubgroupSelect');
+      const tab3DisasterTypeSelect = document.getElementById('tab3DisasterTypeSelect');
+      const tab3DisasterSubtypeSelect = document.getElementById('tab3DisasterSubtypeSelect');
+      const tab3ApplyFiltersBtn = document.getElementById('tab3ApplyFiltersBtn');
+      
+      const annualLossTrendChartTitle = document.getElementById('annualLossTrendChartTitle');
+      const countryLossPieChartTitle = document.getElementById('countryLossPieChartTitle');
+
+
+      // --- Data Processing Function (Common) ---
+      function processCsvData(rawData) {
+        return rawData.map(d => ({
+          disNo: d['DisNo.'],
+          iso: d['ISO'],
+          country: d['Country']?.trim() || 'N/A',
+          disasterGroup: d['Disaster Group']?.trim() || 'N/A',
+          disasterSubgroup: d['Disaster Subgroup']?.trim() || 'N/A',
+          disasterType: d['Disaster Type']?.trim() || 'N/A',
+          disasterSubtype: d['Disaster Subtype']?.trim() || 'N/A',
+          startYear: +d['Start Year'],
+          endYear: +d['End Year'],
+          totalDeaths: d['Total Deaths'] ? +d['Total Deaths'] : 0,
+          totalAffected: d['Total Affected'] ? +d['Total Affected'] : 0,
+          noHomeless: d['No. Homeless'] ? +d['No. Homeless'] : 0,
+          totalDamageKUSD: d["Total Damage ('000 US$)"] ? +d["Total Damage ('000 US$)"] : 0,
+        })).filter(d => d.startYear); // Ensure events have a start year
+      }
+      
+      // --- Tab 2 Specific Functions (Existing) ---
+      function drawBaseMap(geoData) {
+        if (!geoData || !geoData.features) {
+            console.error("GeoJSON data is invalid or missing features for Tab 2 map.");
+            mapContainer.html("<p style='color:red; text-align:center;'>地图地理数据加载失败。</p>");
+            return;
+        }
+        svg.selectAll('g').remove();
+        countryPathsSelection = svg.append('g')
+          .selectAll('path')
+          .data(geoData.features)
+          .join('path')
+          .attr('class', 'country')
+          .attr('d', pathGenerator)
+          .attr('data-country-iso', d => d.properties.iso_a3 || d.id)
+          .on('mousemove', function(event, d) {
+            const countryName = d.properties.name || '未知国家';
+            const countryIso = d.properties.iso_a3 || d.id; 
+            const count = currentCountryEventCounts[countryIso] || 0;
+            tooltip.style('opacity', 0.95)
+              .html(`<strong>${countryName}</strong><br>事件数量: ${count}`)
+              .style('left', `${event.pageX + 10}px`) // Offset to avoid cursor overlap
+              .style('top', `${event.pageY - 20}px`);
+          })
+          .on('mouseout', () => {
+            tooltip.style('opacity', 0);
+          });
+      }
+
+      function populateTab2SubgroupDropdown() {
+        disasterSubgroupSelect.innerHTML = '<option value="All">所有亚群</option>';
+        const subgroups = [...new Set(allDisasterEvents.map(event => event.disasterSubgroup))]
+            .filter(sg => sg && sg !== 'N/A').sort();
+        subgroups.forEach(sg => {
+            const option = document.createElement('option'); option.value = sg; option.textContent = sg;
+            disasterSubgroupSelect.appendChild(option);
+        });
+        populateTab2TypeDropdown();
+      }
+
+      function populateTab2TypeDropdown() {
+        const selectedSubgroup = disasterSubgroupSelect.value;
+        disasterTypeSelect.innerHTML = '<option value="All">所有类型</option>';
+        let relevantEvents = (selectedSubgroup === "All") ? allDisasterEvents : allDisasterEvents.filter(event => event.disasterSubgroup === selectedSubgroup);
+        const types = [...new Set(relevantEvents.map(event => event.disasterType))]
+            .filter(t => t && t !== 'N/A').sort();
+        types.forEach(type => {
+            const option = document.createElement('option'); option.value = type; option.textContent = type;
+            disasterTypeSelect.appendChild(option);
+        });
+        populateTab2SubtypeDropdown();
+      }
+
+      function populateTab2SubtypeDropdown() {
+        const selectedSubgroup = disasterSubgroupSelect.value;
+        const selectedType = disasterTypeSelect.value;
+        disasterSubtypeSelect.innerHTML = '<option value="All">所有子类型</option>';
+        let relevantEvents = allDisasterEvents;
+        if (selectedSubgroup !== "All") relevantEvents = relevantEvents.filter(event => event.disasterSubgroup === selectedSubgroup);
+        if (selectedType !== "All") relevantEvents = relevantEvents.filter(event => event.disasterType === selectedType);
+        const subtypes = [...new Set(relevantEvents.map(event => event.disasterSubtype))]
+            .filter(st => st && st !== 'N/A').sort();
+        subtypes.forEach(subtype => {
+            const option = document.createElement('option'); option.value = subtype; option.textContent = subtype;
+            disasterSubtypeSelect.appendChild(option);
+        });
+      }
+
+      function filterTab2Events() {
+        const selectedYear = +yearSlider.value;
+        const showAllYears = allYearsCheckbox.checked;
+        const currentSubgroup = disasterSubgroupSelect.value;
+        const currentType = disasterTypeSelect.value;
+        const currentSubtype = disasterSubtypeSelect.value;
+        return allDisasterEvents.filter(event => 
+            (showAllYears || event.startYear === selectedYear) &&
+            (currentSubgroup === "All" || event.disasterSubgroup === currentSubgroup) &&
+            (currentType === "All" || event.disasterType === currentType) &&
+            (currentSubtype === "All" || event.disasterSubtype === currentSubtype)
+        );
+      }
+
+      function aggregateEventsByCountry(filteredEvents) {
+        const counts = {};
+        filteredEvents.forEach(event => {
+          if (event.iso) counts[event.iso] = (counts[event.iso] || 0) + 1;
+        });
+        return counts;
+      }
+
+      function updateMapColors(countryCounts) {
+        if (!countryPathsSelection) return;
+        currentCountryEventCounts = countryCounts; 
+        const countsArray = Object.values(countryCounts).filter(c => c > 0);
+        const maxCount = countsArray.length > 0 ? d3.max(countsArray) : 0;
+        const colorScale = (maxCount > 0) ? d3.scaleSequential(d3.interpolateBlues).domain([0, maxCount]) : () => '#e0e7ff';
+        countryPathsSelection.transition().duration(300)
+          .style('fill', d => colorScale(countryCounts[d.properties.iso_a3 || d.id] || 0));
+      }
+
+      function updateInfoTable(filteredEvents) {
+        infoTableBody.html(''); 
+        if (filteredEvents.length === 0) {
+          infoTableBody.append('tr').append('td').attr('colspan', 4).style('text-align', 'center').text('根据当前筛选条件，无匹配事件。');
+          return;
+        }
+        filteredEvents.sort((a,b) => b.startYear - a.startYear || b.totalDeaths - a.totalDeaths);
+        const eventsToShow = filteredEvents.slice(0, 250);
+        eventsToShow.forEach(event => {
+          const row = infoTableBody.append('tr');
+          let displayDisasterType = event.disasterSubtype !== 'N/A' ? event.disasterSubtype : (event.disasterType !== 'N/A' ? event.disasterType : event.disasterSubgroup);
+          if (displayDisasterType === 'N/A' && event.disasterGroup !== 'N/A') displayDisasterType = event.disasterGroup;
+          row.append('td').text(displayDisasterType);
+          row.append('td').text(event.country || event.iso);
+          row.append('td').text(event.startYear);
+          row.append('td').text(event.totalDeaths.toLocaleString());
+        });
+      }
+
+      function updateTab2Visualization() {
+        const filtered = filterTab2Events();
+        const countryAggregates = aggregateEventsByCountry(filtered);
+        updateMapColors(countryAggregates);
+        updateInfoTable(filtered);
+        selectedYearDisplay.textContent = allYearsCheckbox.checked ? "全部" : yearSlider.value;
+      }
+
+      // --- Tab 3 Specific Functions ---
+      function initializeTab3() {
+        if (tab3Initialized || allDisasterEvents.length === 0) return;
+
+        // Initialize ECharts instances
+        annualLossTrendChartInstance = echarts.init(document.getElementById('annualLossTrendChart'));
+        countryLossPieChartInstance = echarts.init(document.getElementById('countryLossPieChart'));
+        disasterImpactRadarChartInstance = echarts.init(document.getElementById('disasterImpactRadarChart'));
+
+        // Populate Tab 3 filters
+        const years = [...new Set(allDisasterEvents.map(d => d.startYear))].sort((a, b) => a - b);
+        if (years.length > 0) {
+            tab3StartYearInput.min = years[0];
+            tab3StartYearInput.max = years[years.length - 1];
+            tab3StartYearInput.value = years[0];
+            tab3EndYearInput.min = years[0];
+            tab3EndYearInput.max = years[years.length - 1];
+            tab3EndYearInput.value = years[years.length - 1];
+        }
+
+        const countries = [...new Set(allDisasterEvents.map(e => e.country))]
+            .filter(c => c && c !== 'N/A').sort();
+        tab3CountrySelect.innerHTML = '<option value="All">所有国家/地区</option>';
+        countries.forEach(c => {
+            const option = document.createElement('option'); option.value = c; option.textContent = c;
+            tab3CountrySelect.appendChild(option);
+        });
+
+        populateTab3DisasterSubgroupDropdown(); // This will chain-populate others
+
+        // Enable controls
+        [tab3StartYearInput, tab3EndYearInput, tab3CountrySelect, 
+         tab3DisasterSubgroupSelect, tab3DisasterTypeSelect, tab3DisasterSubtypeSelect, 
+         tab3ApplyFiltersBtn].forEach(el => el.disabled = false);
+
+        // Add event listeners for Tab 3
+        tab3ApplyFiltersBtn.addEventListener('click', updateTab3Charts);
+        tab3DisasterSubgroupSelect.addEventListener('change', populateTab3DisasterTypeDropdown);
+        tab3DisasterTypeSelect.addEventListener('change', populateTab3DisasterSubtypeDropdown);
+        
+        // Initial chart render for Tab 3
+        updateTab3Charts();
+        tab3Initialized = true;
+      }
+      
+      function populateTab3DisasterSubgroupDropdown() {
+        tab3DisasterSubgroupSelect.innerHTML = '<option value="All">所有亚群</option>';
+        const subgroups = [...new Set(allDisasterEvents.map(event => event.disasterSubgroup))]
+            .filter(sg => sg && sg !== 'N/A').sort();
+        subgroups.forEach(sg => {
+            const option = document.createElement('option'); option.value = sg; option.textContent = sg;
+            tab3DisasterSubgroupSelect.appendChild(option);
+        });
+        populateTab3DisasterTypeDropdown();
+      }
+
+      function populateTab3DisasterTypeDropdown() {
+        const selectedSubgroup = tab3DisasterSubgroupSelect.value;
+        tab3DisasterTypeSelect.innerHTML = '<option value="All">所有类型</option>';
+        let relevantEvents = (selectedSubgroup === "All") ? allDisasterEvents : allDisasterEvents.filter(event => event.disasterSubgroup === selectedSubgroup);
+        const types = [...new Set(relevantEvents.map(event => event.disasterType))]
+            .filter(t => t && t !== 'N/A').sort();
+        types.forEach(type => {
+            const option = document.createElement('option'); option.value = type; option.textContent = type;
+            tab3DisasterTypeSelect.appendChild(option);
+        });
+        populateTab3DisasterSubtypeDropdown();
+      }
+
+      function populateTab3DisasterSubtypeDropdown() {
+        const selectedSubgroup = tab3DisasterSubgroupSelect.value;
+        const selectedType = tab3DisasterTypeSelect.value;
+        tab3DisasterSubtypeSelect.innerHTML = '<option value="All">所有子类型</option>';
+        let relevantEvents = allDisasterEvents;
+        if (selectedSubgroup !== "All") relevantEvents = relevantEvents.filter(event => event.disasterSubgroup === selectedSubgroup);
+        if (selectedType !== "All") relevantEvents = relevantEvents.filter(event => event.disasterType === selectedType);
+        const subtypes = [...new Set(relevantEvents.map(event => event.disasterSubtype))]
+            .filter(st => st && st !== 'N/A').sort();
+        subtypes.forEach(subtype => {
+            const option = document.createElement('option'); option.value = subtype; option.textContent = subtype;
+            tab3DisasterSubtypeSelect.appendChild(option);
+        });
+      }
+
+      function filterTab3Events() {
+        const startYear = +tab3StartYearInput.value || 0;
+        const endYear = +tab3EndYearInput.value || 9999;
+        const country = tab3CountrySelect.value;
+        const subgroup = tab3DisasterSubgroupSelect.value;
+        const type = tab3DisasterTypeSelect.value;
+        const subtype = tab3DisasterSubtypeSelect.value;
+
+        return allDisasterEvents.filter(event => 
+            (event.startYear >= startYear && event.startYear <= endYear) &&
+            (country === "All" || event.country === country) &&
+            (subgroup === "All" || event.disasterSubgroup === subgroup) &&
+            (type === "All" || event.disasterType === type) &&
+            (subtype === "All" || event.disasterSubtype === subtype)
+        );
+      }
+
+      function updateTab3Charts() {
+        if (!tab3Initialized) return;
+
+        const filteredEvents = filterTab3Events();
+        
+        const startY = tab3StartYearInput.value;
+        const endY = tab3EndYearInput.value;
+        const yearRangeText = (startY && endY && startY !== endY) ? `(${startY} - ${endY})` : `(${startY || '起始'}年)`;
+        if (startY === endY && startY) {
+             annualLossTrendChartTitle.textContent = `年度灾害损失趋势 (${startY})`;
+             countryLossPieChartTitle.textContent = `各国灾害损失对比 (${startY})`;
+        } else {
+             annualLossTrendChartTitle.textContent = `年度灾害损失趋势 ${yearRangeText}`;
+             countryLossPieChartTitle.textContent = `各国灾害损失对比 ${yearRangeText}`;
+        }
+
+
+        renderAnnualLossTrendChart(filteredEvents, annualLossTrendChartInstance);
+        renderCountryLossPieChart(filteredEvents, countryLossPieChartInstance);
+        renderDisasterImpactRadarChart(filteredEvents, disasterImpactRadarChartInstance);
+      }
+
+      function renderAnnualLossTrendChart(events, chartInstance) {
+        const damageByYear = {};
+        events.forEach(event => {
+            damageByYear[event.startYear] = (damageByYear[event.startYear] || 0) + event.totalDamageKUSD;
+        });
+        const years = Object.keys(damageByYear).map(Number).sort((a,b) => a - b);
+        const damageData = years.map(year => damageByYear[year]);
+
+        const option = {
+            tooltip: { trigger: 'axis', valueFormatter: (value) => (value / 1000).toFixed(2) + ' 百万美元' },
+            xAxis: { type: 'category', data: years, name: '' },
+            yAxis: { type: 'value', name: '总损失 (千美元)', axisLabel: { formatter: (value) => (value / 1000) + 'M' } },
+            series: [{ data: damageData, type: 'line', smooth: true, areaStyle: {} }],
+            grid: { left: '10%', right: '5%', bottom: '10%', containLabel: true },
+            // dataZoom: [{ type: 'slider', start: 0, end: 100 }, { type: 'inside', start: 0, end: 100 }]
+        };
+        if (years.length === 0) {
+            document.getElementById('annualLossTrendChart').innerHTML = '<div class="chart-placeholder">无数据显示</div>';
+        } else {
+             if (!chartInstance || chartInstance.isDisposed()) { // Re-init if disposed
+                chartInstance = echarts.init(document.getElementById('annualLossTrendChart'));
+            }
+            chartInstance.setOption(option, true); // true to not merge with previous option
+        }
+      }
+
+      function renderCountryLossPieChart(events, chartInstance) {
+        const damageByCountry = {};
+        events.forEach(event => {
+            damageByCountry[event.country] = (damageByCountry[event.country] || 0) + event.totalDamageKUSD;
+        });
+        
+        let pieData = Object.entries(damageByCountry)
+            .map(([name, value]) => ({ name, value }))
+            .filter(d => d.value > 0) // Only show countries with damage
+            .sort((a, b) => b.value - a.value);
+
+        const maxPieSlices = 15; // Show top N and group others
+        if (pieData.length > maxPieSlices) {
+            const otherSlice = pieData.slice(maxPieSlices).reduce((acc, curr) => acc + curr.value, 0);
+            pieData = pieData.slice(0, maxPieSlices);
+            if (otherSlice > 0) pieData.push({ name: '其他国家', value: otherSlice });
+        }
+        
+        const option = {
+            tooltip: { trigger: 'item', valueFormatter: (value) => (value / 1000).toFixed(2) + ' 百万美元' },
+            legend: { orient: 'vertical', left: 'left', type: 'scroll' },
+            series: [{
+                name: '损失金额', type: 'pie', radius: '70%', center: ['60%', '50%'],
+                data: pieData,
+                emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' } }
+            }]
+        };
+         if (pieData.length === 0) {
+            document.getElementById('countryLossPieChart').innerHTML = '<div class="chart-placeholder">无数据显示</div>';
+        } else {
+            if (!chartInstance || chartInstance.isDisposed()) {
+                chartInstance = echarts.init(document.getElementById('countryLossPieChart'));
+            }
+            chartInstance.setOption(option, true);
+        }
+      }
+
+      function renderDisasterImpactRadarChart(events, chartInstance) {
+        const impactByDisasterType = {};
+        events.forEach(event => {
+            const type = event.disasterType !== 'N/A' ? event.disasterType : event.disasterSubgroup;
+            if (type === 'N/A') return; // Skip if no meaningful type
+            if (!impactByDisasterType[type]) {
+                impactByDisasterType[type] = { totalDeaths: 0, totalAffected: 0, noHomeless: 0, count: 0 };
+            }
+            impactByDisasterType[type].totalDeaths += event.totalDeaths;
+            impactByDisasterType[type].totalAffected += event.totalAffected;
+            impactByDisasterType[type].noHomeless += event.noHomeless;
+            impactByDisasterType[type].count++;
+        });
+
+        let radarDataSeries = Object.entries(impactByDisasterType)
+            .map(([name, data]) => ({ name, value: [data.totalDeaths, data.totalAffected, data.noHomeless], count: data.count }))
+            .sort((a,b) => b.count - a.count); // Sort by event count or total impact
+
+        const maxRadarSeries = 5;
+        if (radarDataSeries.length > maxRadarSeries) {
+            radarDataSeries = radarDataSeries.slice(0, maxRadarSeries);
+        }
+        
+        const indicators = [
+            { name: '死亡人数', max: Math.max(1, ...radarDataSeries.map(d => d.value[0])) }, // Ensure max is at least 1
+            { name: '受影响人数', max: Math.max(1, ...radarDataSeries.map(d => d.value[1])) },
+            { name: '无家可归人数', max: Math.max(1, ...radarDataSeries.map(d => d.value[2])) }
+        ];
+        // Dynamically adjust max if all values are 0 for an indicator
+        indicators.forEach(ind => {
+            if (ind.max === 0) ind.max = 1;
+        });
+
+
+        const option = {
+            tooltip: { trigger: 'item' },
+            legend: { data: radarDataSeries.map(d => d.name), bottom: 0, type: 'scroll' },
+            radar: { indicator: indicators, center: ['50%', '50%'], radius: '65%' },
+            series: [{ type: 'radar', data: radarDataSeries }]
+        };
+
+        if (radarDataSeries.length === 0) {
+            document.getElementById('disasterImpactRadarChart').innerHTML = '<div class="chart-placeholder">无数据显示</div>';
+        } else {
+             if (!chartInstance || chartInstance.isDisposed()) {
+                chartInstance = echarts.init(document.getElementById('disasterImpactRadarChart'));
+            }
+            chartInstance.setOption(option, true);
+        }
+      }
+      
+      // --- Main Application Initialization ---
+      async function initializeApp() {
+        // Show loading messages
+        document.querySelectorAll('.chart-placeholder').forEach(el => el.textContent = '加载数据中...');
+        try {
+          const [csvRawData, geoData] = await Promise.all([
+            d3.csv("assets/data.csv").catch(e => { console.error("Failed to load data.csv:", e); return null; }), 
+            d3.json("world-countries.json").catch(e => { console.error("Failed to load world-countries.json:", e); return null; })
+          ]);
+
+          if (!csvRawData) throw new Error("CSV数据 (data.csv) 加载失败。");
+          // geoData is optional for Tab 3, but essential for Tab 2
+          if (!geoData && document.getElementById('sec2').classList.contains('active')) { // only throw error if tab2 is active and geojson fails
+             console.warn("GeoJSON数据 (world-countries.json) 加载失败. 地图功能将不可用。");
+          }
+          
+          allDisasterEvents = processCsvData(csvRawData);
+          worldGeoJson = geoData; // Can be null if loading failed
+
+          if (allDisasterEvents.length === 0) {
+            throw new Error("处理后的灾害数据为空。请检查CSV文件内容和格式。");
+          }
+
+          // Initialize Tab 2 (Map Tab)
+          const years = [...new Set(allDisasterEvents.map(d => d.startYear))].sort((a, b) => a - b);
+          if (years.length > 0) {
+            yearSlider.min = years[0];
+            yearSlider.max = years[years.length - 1];
+            yearSlider.value = years[years.length - 1]; 
+            selectedYearDisplay.textContent = allYearsCheckbox.checked ? "全部" : yearSlider.value;
+            yearSlider.disabled = allYearsCheckbox.checked;
+          } else {
+            selectedYearDisplay.textContent = "无可用年份";
+            [yearSlider, allYearsCheckbox, disasterSubgroupSelect, disasterTypeSelect, disasterSubtypeSelect].forEach(el => el.disabled = true);
+          }
+          
+          if (worldGeoJson) drawBaseMap(worldGeoJson); // Draw map only if geoData loaded
+          populateTab2SubgroupDropdown(); 
+
+          // Setup event listeners for Tab 2 controls
+          yearSlider.addEventListener('input', () => {
+            selectedYearDisplay.textContent = yearSlider.value;
+            if (allYearsCheckbox.checked) { allYearsCheckbox.checked = false; yearSlider.disabled = false; }
+            updateTab2Visualization();
+          });
+          allYearsCheckbox.addEventListener('change', () => {
+            yearSlider.disabled = allYearsCheckbox.checked;
+            updateTab2Visualization();
+          });
+          disasterSubgroupSelect.addEventListener('change', () => { populateTab2TypeDropdown(); updateTab2Visualization(); });
+          disasterTypeSelect.addEventListener('change', () => { populateTab2SubtypeDropdown(); updateTab2Visualization(); });
+          disasterSubtypeSelect.addEventListener('change', updateTab2Visualization);
+          
+          updateTab2Visualization(); // Initial render for Tab 2
+
+          // If Tab 3 is already active (e.g. page reloaded on it), initialize it
+          if (document.getElementById('sec3').classList.contains('active') && !tab3Initialized) {
+            initializeTab3();
+          }
+          document.querySelectorAll('.chart-placeholder').forEach(el => el.textContent = '请应用筛选查看数据');
+
+
+        } catch (error) {
+          console.error("应用程序初始化错误:", error);
+          const errorMsg = `数据加载或初始化失败: ${error.message}`;
+          mapContainer.html(`<p style='color:red; text-align:center;'>${errorMsg}</p>`);
+          selectedYearDisplay.textContent = "错误";
+          infoTableBody.html(`<tr><td colspan="4" style="text-align:center; color:red;">${errorMsg}</td></tr>`);
+          document.querySelectorAll('.chart-placeholder').forEach(el => el.textContent = errorMsg);
+          // Disable all controls if init fails
+           [yearSlider, allYearsCheckbox, disasterSubgroupSelect, disasterTypeSelect, disasterSubtypeSelect,
+            tab3StartYearInput, tab3EndYearInput, tab3CountrySelect, 
+            tab3DisasterSubgroupSelect, tab3DisasterTypeSelect, tab3DisasterSubtypeSelect, 
+            tab3ApplyFiltersBtn].forEach(el => el.disabled = true);
+        }
+      }
+
+      initializeApp();
+
+      // Resize ECharts instances on window resize
+      window.addEventListener('resize', () => {
+        if (annualLossTrendChartInstance && !annualLossTrendChartInstance.isDisposed()) annualLossTrendChartInstance.resize();
+        if (countryLossPieChartInstance && !countryLossPieChartInstance.isDisposed()) countryLossPieChartInstance.resize();
+        if (disasterImpactRadarChartInstance && !disasterImpactRadarChartInstance.isDisposed()) disasterImpactRadarChartInstance.resize();
+        // Potentially resize D3 map SVG if needed, though viewBox should handle it.
       });
     });
   </script>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <script src="script.js"></script>
-
 </body>
 </html>
