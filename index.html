@@ -24,7 +24,7 @@
     }
 
     body {
-      font-family: 'Inter', system-ui, sans-serif;
+      font-family: system-ui, 'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC', 'Heiti SC', 'Inter',Arial,  system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.6;
@@ -470,7 +470,7 @@
   <main>
     <section id="sec1" class="content active">
       <figure>
-        <img src="assets/2.gif" 
+        <img src="assets/3.gif" 
              onerror="this.onerror=null; this.src='https://placehold.co/800x400/cccccc/333333?text=GIF+Not+Found';"
              alt="全球趋势动画" class="hero-gif" />
       </figure>
@@ -524,6 +524,9 @@
                       <th>国家</th>
                       <th>年份</th>
                       <th>总死亡人数</th>
+                      <th>总受影响人数</th>
+                      <th>总无家可归人数</th>
+                      <th>总损失（百万）</th>
                     </tr>
                   </thead>
                   <tbody id="infoTableBody">
@@ -805,6 +808,9 @@
           row.append('td').text(event.country || event.iso);
           row.append('td').text(event.startYear);
           row.append('td').text(event.totalDeaths.toLocaleString());
+          row.append('td').text(event.totalAffected.toLocaleString());
+          row.append('td').text(event.noHomeless.toLocaleString());
+          row.append('td').text((event.totalDamageKUSD/1000).toLocaleString());
         });
       }
 
@@ -1059,7 +1065,7 @@
         document.querySelectorAll('.chart-placeholder').forEach(el => el.textContent = '加载数据中...');
         try {
           const [csvRawData, geoData] = await Promise.all([
-            d3.csv("assets/data.csv").catch(e => { console.error("Failed to load data.csv:", e); return null; }), 
+            d3.csv("assets/data2.csv").catch(e => { console.error("Failed to load data.csv:", e); return null; }), 
             d3.json("world-countries.json").catch(e => { console.error("Failed to load world-countries.json:", e); return null; })
           ]);
 
