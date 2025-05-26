@@ -1,0 +1,445 @@
+:root {
+      --primary: #4f46e5; /* indigo-600 */
+      --bg: #f9fafb; /* gray-50 */
+      --text: #1f2937; /* gray-800 */
+      --border-color: #e5e7eb; /* gray-200 */
+      --card-bg: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, 'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC', 'Heiti SC', 'Inter',Arial,  system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 16px; /* Base font size */
+    }
+
+    /* ───────────── 顶部导航 Tabs ───────────── */
+    header {
+      background: var(--card-bg);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 1000; /* Ensure header is above other content */
+    }
+
+    nav.tabs {
+      display: flex;
+      max-width: 900px; /* Increased max-width for wider tabs */
+      margin: 0 auto;
+      position: relative;
+    }
+
+    nav.tabs button {
+      flex: 1;
+      padding: 1rem 0.5rem; /* Adjusted padding */
+      font-size: 0.95rem; /* Slightly smaller font for more text */
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: color 0.3s;
+      color: #6b7280; /* gray-500 */
+    }
+
+    nav.tabs button:hover {
+      color: var(--primary);
+    }
+
+    nav.tabs button.active {
+      color: var(--primary);
+    }
+
+    .glider {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: calc(100% / 3); /* 3 个 tab */
+      height: 3px;
+      background: var(--primary);
+      transition: transform 0.3s ease;
+      transform: translateX(0);
+    }
+
+    /* ───────────── 主体内容 ───────────── */
+    main {
+      padding: 1.5rem; /* Adjusted main padding for consistency */
+      max-width: 1400px; /* Max width for the main content area */
+      margin: 0 auto; /* Center main content */
+    }
+
+    section {
+      display: none;
+    }
+    
+    section.active {
+      display: block;
+      animation: fade 0.5s ease-in-out;
+    }
+
+    @keyframes fade {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ───────────── 首屏 GIF ───────────── */
+    .hero-gif {
+      max-width: 100%; /* Make GIF responsive */
+      height: auto;
+      max-height: 560px; /* Limit height */
+      object-fit: contain;
+      border-radius: 0.75rem;
+      margin: 0 auto 1rem auto; /* Center and add bottom margin */
+      display: block;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    }
+    
+    h2, h3 {
+        font-weight: 600;
+        color: var(--text);
+    }
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    h3 {
+        font-size: 1.25rem;
+        margin-bottom: 0.75rem; /* Slightly reduced bottom margin for h3 */
+    }
+
+
+    /* ───────────── Tab 2 Layout ───────────── */
+    .tab2-container {
+      display: flex;
+      flex-direction: column; /* Stack vertically on small screens */
+      gap: 1.5rem;
+    }
+
+    .controls-panel { /* Shared by Tab 2 */
+      padding: 1.5rem; 
+      background: var(--card-bg); 
+      border-radius: 0.75rem; 
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    
+    .map-and-info-container {
+        display: flex;
+        flex-direction: column; /* Stack on small screens */
+        gap: 1.5rem;
+    }
+
+    .map-container-wrapper {
+      flex: 1; 
+      min-width: 0; 
+      background: var(--card-bg);
+      border-radius: 0.75rem; 
+      padding: 1rem; 
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+
+    #map {
+      width: 100%;
+      height: auto; 
+      max-height: 500px; 
+    }
+
+    .info-panel {
+      padding: 1.5rem; 
+      background: var(--card-bg);
+      border-radius: 0.75rem; 
+      height: 400px; 
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    
+    @media (min-width: 1024px) { 
+        .tab2-container {
+            flex-direction: row; 
+            margin-top: -10px;
+        }
+        .controls-panel { /* Tab 2 specific width */
+            flex: 0 0 240px; /* Slightly wider fixed width for controls */
+            height: auto;
+        }
+        .map-and-info-container {
+            flex: 1;
+            flex-direction: row;
+        }
+        .map-container-wrapper {
+            flex: 2.5; 
+        }
+        .info-panel {
+            flex: 1; 
+            height: auto; 
+            max-height: 585px; 
+        }
+    }
+
+    /* Control Panel Elements (Shared Styles) */
+    .control-group {
+      margin-bottom: 1.25rem; 
+    }
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-group label,
+    label[for="allYearsCheckbox"],
+    label[for="tab3AllYearsCheckbox"] { /* Added Tab 3 checkbox label */
+      display: block;
+      margin-bottom: 0.1rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #374151; /* gray-700 */
+    }
+
+    input[type="range"] {
+      width: 100%;
+      cursor: pointer;
+      accent-color: var(--primary);
+    }
+
+    #selectedYearDisplay, #tab3SelectedYearDisplay { /* Added Tab 3 year display */
+      font-weight: bold;
+      color: var(--primary);
+      font-size: 1rem;
+      margin-left: 0.25rem;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      margin-top: 0.5rem; 
+    }
+
+    input[type="checkbox"] {
+      margin-right: 0.5rem;
+      width: 1.15rem;
+      height: 1.15rem;
+      accent-color: var(--primary);
+      cursor: pointer;
+      border-radius: 0.25rem;
+      border: 1px solid var(--border-color);
+    }
+
+    select.filter-select, 
+    .tab3-controls-panel select, /* Tab 3 selects */
+    .tab3-controls-panel input[type="number"] /* Tab 3 number inputs */
+     {
+      width: 100%;
+      padding: 0.6rem 0.75rem; 
+      border: 1px solid var(--border-color);
+      border-radius: 0.375rem; 
+      background-color: var(--card-bg);
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    select.filter-select:focus,
+    .tab3-controls-panel select:focus, /* Tab 3 selects focus */
+    .tab3-controls-panel input[type="number"]:focus /* Tab 3 number inputs focus */
+    {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); 
+    }
+    
+    /* Info Panel Table (Tab 2) */
+    .info-panel table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem; 
+    }
+
+    .info-panel th, .info-panel td {
+      border: 1px solid var(--border-color);
+      padding: 0.6rem 0.4rem; 
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .info-panel th {
+      background-color: #f3f4f6; 
+      font-weight: 600;
+      position: sticky; 
+      top: -1.5rem; 
+      z-index: 10;
+      box-shadow: inset 0 -1px 0 var(--border-color); 
+    }
+    
+    /* SVG Map Styles (Tab 2) */
+    svg#map-svg { 
+      display: block; 
+      font-family: inherit;
+    }
+
+    .country {
+      fill: #e0e7ff; 
+      stroke: #a5b4fc; 
+      stroke-width: 0.5;
+      transition: fill 0.2s ease;
+    }
+
+    .country:hover {
+      fill: #6366f1; 
+      cursor: pointer;
+    }
+
+    /* Tooltip (Tab 2) */
+    .tooltip {
+      position: absolute;
+      background: rgba(31, 41, 55, 0.95); 
+      color: #f9fafb; 
+      border: none;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem; 
+      font-size: 0.8rem;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      pointer-events: none; 
+      opacity: 0;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      transform: translate(-50%, calc(-100% - 10px)); 
+      white-space: nowrap;
+      z-index: 1001; 
+    }
+
+    /* ───────────── Tab 3 Layout & Styles ───────────── */
+    .tab3-layout {
+        display: flex;
+        flex-direction: column; /* Default for small screens */
+        gap: 1.5rem;
+    }
+
+    .tab3-controls-panel {
+        padding: 1.5rem;
+        background: var(--card-bg);
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+    }
+    
+    .tab3-charts-panel {
+        flex-grow: 1;
+        display: grid;
+        grid-template-columns: 1fr; /* Single column for small screens */
+        gap: 1.5rem;
+
+    }
+
+    .chart-container {
+        background: var(--card-bg);
+        padding: 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+        min-height: 400px; /* Adjusted min-height for better chart display */
+        display: flex; 
+        flex-direction: column; /* Allow title and chart */
+        align-items: stretch; 
+        justify-content: flex-start;
+    }
+    
+    .chart-container h4 { /* Style for chart titles */
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    .chart-container > div { /* The ECharts div */
+        width: 100%;
+        flex-grow: 1; /* Make ECharts div take remaining space */
+        height: 300px; /* Default height, ECharts will use it */
+    }
+    
+    .chart-placeholder { /* For messages like 'Loading...' or 'No data' */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        color: #6b7280; /* gray-500 */
+        font-style: italic;
+    }
+
+
+    @media (min-width: 768px) { /* md breakpoint for 2 charts per row */
+      .tab3-charts-panel {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (min-width: 1024px) { /* lg breakpoint for layout change */
+        .tab3-layout {
+            flex-direction: row;
+        }
+        .tab3-controls-panel {
+            flex: 0 0 230px; /* Wider fixed width for controls */
+        }
+        .tab3-charts-panel {
+           /* One column of charts when controls are on the side */
+           grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (min-width: 1280px) { /* xl breakpoint for 3 charts in a row if controls are on top, or adjust for side controls */
+        .tab3-layout.controls-top .tab3-charts-panel { /* Example if we had a class to toggle control position */
+             grid-template-columns: 1fr 1fr 1fr;
+        }
+        /* If controls are on the side, maybe 2 charts per row is enough, or a smart grid */
+        .tab3-layout:not(.controls-top) .tab3-charts-panel {
+             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        }
+    }
+
+
+    .tab3-controls-panel .year-range-inputs {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center; /* Align items vertically */
+    }
+    .tab3-controls-panel .year-range-inputs input[type="number"] {
+        flex: 1;
+    }
+    .tab3-controls-panel .year-range-inputs span { /* For the "to" text */
+        font-size: 0.9rem;
+        color: #374151;
+    }
+
+    .tab3-apply-filters-btn {
+        width: 100%;
+        padding: 0.75rem;
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        margin-top: 1.5rem; /* Increased margin */
+    }
+    .tab3-apply-filters-btn:hover {
+        background-color: #4338ca; /* indigo-700 */
+    }
+    .tab3-apply-filters-btn:disabled {
+        background-color: #9ca3af; /* gray-400 */
+        cursor: not-allowed;
+    }
