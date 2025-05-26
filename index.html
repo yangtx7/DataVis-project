@@ -685,9 +685,9 @@
           disasterSubtype: d['Disaster Subtype']?.trim() || 'N/A',
           startYear: +d['Start Year'],
           endYear: +d['End Year'],
-          totalDeaths: d['Total Deaths'] ? +d['Total Deaths'] : 0,
-          totalAffected: d['Total Affected'] ? +d['Total Affected'] : 0,
-          noHomeless: d['No. Homeless'] ? +d['No. Homeless'] : 0,
+          totalDeaths: d['Total Deaths'] ? +parseInt(d['Total Deaths'], 10) : 0,
+          totalAffected: d['Total Affected'] ? +parseInt(d['Total Affected'], 10) : 0,
+          noHomeless: d['No. Homeless'] ? +parseInt(d['No. Homeless'], 10) : 0,
           totalDamageKUSD: d["Total Damage ('000 US$)"] ? +d["Total Damage ('000 US$)"] : 0,
         })).filter(d => d.startYear); // Ensure events have a start year
       }
